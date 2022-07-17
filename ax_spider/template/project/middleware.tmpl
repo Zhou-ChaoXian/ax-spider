@@ -1,0 +1,16 @@
+# coding: utf-8
+
+
+class ${ClassName}Middleware(object):
+
+    def __init__(self, crawler):
+        self.crawler = crawler
+
+    async def process_request(self, request):
+        return request
+
+    async def process_exception(self, request, exception):
+        return exception
+
+    async def process_response(self, response):
+        return response

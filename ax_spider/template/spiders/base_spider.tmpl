@@ -1,0 +1,12 @@
+# coding: utf-8
+
+from ${module} import Spider, Request
+
+
+class ${ClassName}Spider(Spider, coroutine_num=1, max_depth=0):
+
+    async def __call__(self, *args, **kwargs):
+        yield Request(url='http://localhost/')
+
+    async def parse(self, response):
+        pass
