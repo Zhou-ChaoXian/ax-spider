@@ -10,7 +10,7 @@ setup(
     name=data,
     version='0.0.9a0',
     project_urls={
-        'Source': 'https://github.com/Zhou-ChaoXian/crawler'
+        'Source': 'https://github.com/Zhou-ChaoXian/ax-spider'
     },
     packages=find_packages(include=[f'{data}*']),
     zip_safe=False,

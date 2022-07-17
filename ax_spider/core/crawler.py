@@ -29,7 +29,7 @@ class Crawler(object):
         self.engine: Optional[Engine] = None
         self._spider = None
         self._exit_func = deque()
-        self.register(self.log_state_info)
+        self.register(self._log_state_info)
 
     @classmethod
     def from_crawler(cls, loop, options):
@@ -45,7 +45,7 @@ class Crawler(object):
         crawler.instance_from_class(DefaultLogger).set_logger()
         crawler._spider = crawler.instance_from_class(spider_class)
         crawler.engine = crawler.instance_from_class(Engine)
-        crawler.basics_signal_func()
+        crawler._basics_signal_func()
         return crawler
 
     spider = property(lambda self: self._spider)
@@ -88,14 +88,14 @@ class Crawler(object):
     def close(self):
         raise ExitException
 
-    def log_state_info(self):
+    def _log_state_info(self):
         width = self.setting.get('PPRINT_WIDTH')
         depth = self.setting.get('PPRINT_DEPTH')
         sort_dicts = self.setting.get('PPRINT_SORT_DICTS')
         state_data = pprint.pformat(self.state.all_value, width=width, depth=depth, sort_dicts=sort_dicts)
         self.spider.logger.info('\n%s', state_data)
 
-    def basics_signal_func(self):
+    def _basics_signal_func(self):
         self.signal_handler.connect(
             lambda _: self.state.inc_value('request_received'),
             self.signals.request_received
