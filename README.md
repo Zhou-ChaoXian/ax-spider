@@ -1,16 +1,56 @@
-## ax_spider 说明
+## ax-spider
 
-> ***用途***：类似`scrapy`，异步请求数据
+> ***依赖***：python >= 3.9
+>
+> ***简介***：一款简单的python爬虫框架
 > 
 > ***开发***：`asyncio`和`httpx`
 > 
-> ***注意***：使用的`httpx`版本：**0.23.0**
-> 
-> ***简介***：具备`scrapy`***最基础***的类似功能，简单简洁，适合练手
-> 
-> ***看法***：超级简化版`scrapy`
+> ***注意***：使用的`httpx`版本 0.23.0
 
 ***
+
+#### 卖点
+
+    轻量级、依赖少、安装快、运行速度也快
+
+![谁反对](./谁反对.gif "谁反对")
+
+#### 安装检查
+
+    pip install ax-spider
+    或者进入源码dist目录下，里面有 whl安装包 点击下载，pip install *.whl
+    
+    ax_spider -v 或者 python -m ax_spider -v
+
+#### 一起来实现一个简单的示例
+
+    源码tests目录下有一个更详细的示例
+
+    1. 找一个空闲的文件夹，使用编辑器打开
+    2. 打开终端，进入文件夹路径
+    3. python -m ax_spider project test1  生成项目，项目名为test1
+    4. python -m ax_spider spider t1 test1/spiders  在test1/spiders目录下生成解析文件
+    5. 编辑t1.py
+        from ax_spider import Spider, Request
+
+
+        class T1Spider(Spider, coroutine_num=1, max_depth=0):
+
+            async def __call__(self, *args, **kwargs):
+                yield Request(url='http://www.baidu.com/')
+        
+            async def parse(self, response):
+                self.logger.info(response.status_code)
+    6. 当前目录下有一个run文件，运行文件
+        from ax_spider import executor
+
+        if __name__ == '__main__':
+            executor({
+                'path': 'test1.spiders.t1',
+            })
+
+        或者 python -m ax_spider crawl test1.spiders.t1
 
 #### 命令行
 
