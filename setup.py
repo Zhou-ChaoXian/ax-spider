@@ -6,13 +6,15 @@ data = 'ax_spider'
 
 setup(
     name=data,
-    version='0.0.9a0',
+    version='0.1.0',
     project_urls={
-        'Source': 'https://github.com/Zhou-ChaoXian/ax-spider'
+        'Source code': 'https://github.com/Zhou-ChaoXian/ax-spider'
     },
     packages=find_packages(include=[f'{data}*']),
     zip_safe=False,
-    description=f'一款简单的python爬虫框架',
+    description='A simple Python crawler framework',
+    long_description='一个简单的`python`爬虫框架',
+    long_description_content_type='text/markdown',
     author='Zhou-ChaoXian',
     author_email='2542606900@qq.com',
     keywords=data,
@@ -32,9 +34,9 @@ setup(
         data: ['template/*', 'template/project/*', 'template/spiders/*']
     },
     classifiers=[
-          'Programming Language :: Python :: 3.9',
-          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-          'Operating System :: OS Independent'
+        'Programming Language :: Python :: 3.9',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Operating System :: OS Independent'
     ],
     entry_points={
         'console_scripts': [

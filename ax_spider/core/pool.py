@@ -1,8 +1,7 @@
 # coding: utf-8
 
-import asyncio
 from collections import deque
-from contextlib import suppress
+from asyncio import ensure_future, wait, FIRST_COMPLETED
 
 __all__ = ['Pool']
 
@@ -20,11 +19,11 @@ class Pool(object):
         def done_callback(fut):
             self._future_num -= 1
             self._fs.remove(fut)
-            with suppress(IndexError):
+            if len(self._dq) > 0:
                 self.add_coroutine(*self._dq.popleft())
 
         if self._future_num < self._size:
-            future = asyncio.ensure_future(coroutine_func)
+            future = ensure_future(coroutine_func)
             self._future_num += 1
             self._fs.add(future)
             for cb in callbacks:
@@ -48,15 +47,15 @@ class Pool(object):
 
     async def join(self):
         while self._future_num > 0:
-            await asyncio.wait(self._fs, return_when=asyncio.FIRST_COMPLETED)
+            await wait(self._fs, return_when=FIRST_COMPLETED)
 
     async def wait_available(self):
         while self._future_num == self._size:
-            await asyncio.wait(self._fs, return_when=asyncio.FIRST_COMPLETED)
+            await wait(self._fs, return_when=FIRST_COMPLETED)
 
     async def wait_one(self):
         if self._future_num == 0:
             return False
         else:
-            await asyncio.wait(self._fs, return_when=asyncio.FIRST_COMPLETED)
+            await wait(self._fs, return_when=FIRST_COMPLETED)
             return True

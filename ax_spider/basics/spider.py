@@ -17,8 +17,8 @@ class Spider(metaclass=protect('no_parse')):
         self.crawler = crawler
         self.loop = crawler.loop
         self.setting = crawler.setting
-        self.options = crawler.options  # 命令行参数
-        self._logger = None
+        self.options = crawler.options
+        self._logger = logging.getLogger(__title__)
 
     async def __call__(self, *args, **kwargs):
         pass
@@ -32,6 +32,4 @@ class Spider(metaclass=protect('no_parse')):
 
     @property
     def logger(self):
-        if self._logger is None:
-            self._logger = logging.getLogger(__title__)
         return self._logger

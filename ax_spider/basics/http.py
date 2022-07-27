@@ -44,10 +44,7 @@ class Request(httpx.Request):
         try:
             if self.client is None:
                 client = Client(**self.client_params)
-                return await client.send(self, auth=self.client_params['auth'],
-                                         follow_redirects=self.client_params['follow_redirects'])
-            else:
-                return await client.send(self, auth=client.auth, follow_redirects=client.follow_redirects)
+            return await client.send(self, auth=client.auth, follow_redirects=client.follow_redirects)
         except httpx.HTTPError as exc:
             self.exception = exc
         finally:

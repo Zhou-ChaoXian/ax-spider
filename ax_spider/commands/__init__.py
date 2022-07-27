@@ -17,7 +17,7 @@ def run():
         allow_abbrev=False
     )
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
-    sub_parser = parser.add_subparsers(title='二级命令', prog=__title__)
+    sub_parser = parser.add_subparsers(title='Commands', prog=__title__)
     parser_dict = {}
     files = Path(__file__).parent.glob('[!_]*.py')
     module_path = f'{__title__}.commands'
@@ -44,6 +44,7 @@ def add_parser(files, module_path, sub_parser, parser_dict):
             parser = sub_parser.add_parser(
                 name=file_name,
                 usage='%(prog)s [option ...]',
+                description=obj.short_desc,
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                 prefix_chars='-/',
                 conflict_handler='resolve',
