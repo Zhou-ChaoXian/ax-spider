@@ -7,12 +7,12 @@ from ..__version__ import __title__
 
 
 class Command(object):
-    short_desc = '生成项目'
+    short_desc = 'Create new project'
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('project_name', help='项目名')
-        parser.add_argument('--safe', action='store_true', help='文件不覆盖')
+        parser.add_argument('project_name', help='project name')
+        parser.add_argument('--safe', action='store_true', help='Do not overwrite existing files')
 
     def run(self, options):
         path = Path(__file__).parents[1]

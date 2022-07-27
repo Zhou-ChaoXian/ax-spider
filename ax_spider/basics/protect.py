@@ -10,7 +10,7 @@ def protect(*protected):
             if bases and bases != (object,):
                 for i in protected:
                     if (func := namespace.get(i)) and callable(func):
-                        raise ProtectError(f'不能覆盖 {i} 方法')
+                        raise ProtectError(f'The {i} method cannot be overridden')
                 if (coroutine_num := kwargs.get('coroutine_num', 1)) > 1:
                     namespace['custom_settings']['COROUTINE_NUM'] = coroutine_num
                 if (max_depth := kwargs.get('max_depth', 0)) > 0:

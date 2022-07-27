@@ -7,13 +7,13 @@ from ..__version__ import __title__
 
 
 class Command(object):
-    short_desc = '生成解析文件'
+    short_desc = 'Generate new spider'
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('spider_name', help='spider文件名')
-        parser.add_argument('spider_folder', nargs='?', default='spiders', help='spider所在的文件夹')
-        parser.add_argument('-t', metavar='template', default=None, help='模板路径')
+        parser.add_argument('spider_name', help='spider name')
+        parser.add_argument('spider_folder', nargs='?', default='spiders', help='folder path')
+        parser.add_argument('-t', metavar='template', default=None, help='template path')
 
     @staticmethod
     def run(options):

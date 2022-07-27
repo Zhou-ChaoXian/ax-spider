@@ -5,13 +5,13 @@ from ..core.run import executor
 
 
 class Command(object):
-    short_desc = '启动任务'
+    short_desc = 'Start parsing spider'
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('path', help='任务路径')
-        parser.add_argument('kws', action=Action, nargs='*', default=[], help='多个参数，空格隔开，`=`切割')
-        parser.add_argument('--selector', action='store_true', default=False, help='selector事件循环')
+        parser.add_argument('path', help='spider path')
+        parser.add_argument('kws', action=Action, nargs='*', default=[], help='custom parameters')
+        parser.add_argument('--selector', action='store_true', default=False, help='selector EventLoop')
         parser.add_argument('--debug', action='store_true', default=False, help='debug')
 
     @staticmethod
