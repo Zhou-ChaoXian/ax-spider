@@ -12,8 +12,8 @@
 * [安装](#安装)
 * [简单示例](#一起来实现一个简单的示例)
 * [命令行](#命令行)
-* [请求](#请求操作推荐第一个)
-* [存储](#存储操作推荐第一个)
+* [请求](#请求操作两个方法，推荐第一个)
+* [存储](#存储操作两个方法，推荐第一个)
 * [中间件](#middleware)
 * [管道](#pipeline)
 * [信号](#信号)
@@ -153,7 +153,7 @@ class Command(object):
 
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Enter</kbd>
 
-### 请求操作(推荐<sup>第一个</sup>)
+### 请求操作(两个方法，推荐<sup>第一个</sup>)
 
 `yield Request(url='http://localhost/')`
 
@@ -163,11 +163,11 @@ class Command(object):
 
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Enter</kbd>
 
-### 存储操作(推荐<sup>第一个</sup>)
+### 存储操作(两个方法，推荐<sup>第一个</sup>)
 
 `yield BaseItem()`
 
-`self.crawler.engine.add_item(item, response)`
+`self.crawler.engine.add_item(BaseItem(), response)`
 
 response可以忽略
 
