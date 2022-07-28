@@ -313,6 +313,6 @@ func 普通函数或异步函数(函数没有形参)
 
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Alt</kbd><kbd>F4</kbd>
 
-:100: :satellite: :earth_asia: :snowflake: :+1: :sunglasses:
+完结 :100: :satellite: :earth_asia: :snowflake: :+1: :sunglasses:
 
 !["鼓掌"](./鼓掌.gif "i'm fine thank you")
