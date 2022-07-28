@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from importlib import import_module
-from functools import update_wrapper
 
 
 def load_object(path):
@@ -32,13 +31,12 @@ class Pipe(object):
 
     def __init__(self, func):
         self.func = func
-        update_wrapper(self, func)
 
     def __call__(self, key=None):
         if key is None:
-            return self.__call__(lambda x: self.func(x))
+            return Pipe(lambda x: self.func(x))
         else:
-            return self.__call__(lambda x: self.func(x, key))
+            return Pipe(lambda x: self.func(x, key))
 
     def __ror__(self, other):
         return self.func(other)
