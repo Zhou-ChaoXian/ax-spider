@@ -6,7 +6,7 @@ data = 'ax_spider'
 
 setup(
     name=data,
-    version='0.1.0',
+    version='0.1.1',
     project_urls={
         'Source code': 'https://github.com/Zhou-ChaoXian/ax-spider'
     },
