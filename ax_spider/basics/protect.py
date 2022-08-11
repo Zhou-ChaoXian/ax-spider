@@ -3,7 +3,7 @@
 
 def protect(*protected):
     class ProtectMeta(type):
-        _parse_instance = None
+        _instance = None
 
         def __new__(mcs, name, bases, namespace, **kwargs):
             namespace.setdefault('custom_settings', {})
@@ -18,9 +18,9 @@ def protect(*protected):
             return super().__new__(mcs, name, bases, namespace)
 
         def __call__(cls, *args, **kwargs):
-            if cls._parse_instance is None:
-                cls._parse_instance = super().__call__(*args, **kwargs)
-            return cls._parse_instance
+            if cls._instance is None:
+                cls._instance = super().__call__(*args, **kwargs)
+            return cls._instance
 
     return ProtectMeta
 

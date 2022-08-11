@@ -44,7 +44,7 @@ class Engine(object):
         self._generator_data = defaultdict(deque)
         self._coroutine_num = self.setting.get_int('COROUTINE_NUM')
         self._no_resp = self.crawler.loop.run_until_complete(no_response(self.crawler.spider.no_parse))
-        self.pool = Pool(self._coroutine_num)
+        self.pool = Pool(self._coroutine_num, crawler.loop)
         self.exit_flag = False
 
     @classmethod
