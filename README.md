@@ -23,10 +23,11 @@
 * [添加总任务](#添加异步生成器)
 * [关闭](#关闭)
 * [添加退出函数](#添加退出函数)
+* [流模式](#流模式请求数据)
 
 ### 亮点
 
-轻量级、依赖少、安装快、运行速度也快、支持异步
+轻量级、依赖少、安装快、运行速度也快、支持异步（有问题直接找`httpx`文档）
 
 [comment]: <> (![]&#40;./谁反对.gif "谁反对"&#41;)
 
@@ -36,7 +37,8 @@
 
 `pip install ax-spider`
 
-或者进入<u>源码dist</u>目录下，里面有 whl安装包 点击下载，`pip install *.whl`
+或者进入<b><font size=5 color=Tomato face="华文彩云">上面源码<font color=Violet><kbd>↑</kbd></font><font color=green>
+dist</font></font></b>目录下，里面有 <b><font size=5 color=green face="黑体">whl安装包</font></b> 点击下载，`pip install *.whl`
 
 `ax_spider -v` | `python -m ax_spider -v` 检查版本
 
@@ -44,7 +46,7 @@
 
 ### 一起来实现一个简单的示例
 
-<u>源码tests</u>目录下有一个更详细的示例
+<b><font size=5 color=Tomato face="华文彩云">源码tests</font><b>目录下有一个更详细的示例
 
 1. 找一个空闲的文件夹，使用IDE打开
 
@@ -271,9 +273,9 @@ item处理，返回`item`(下一个) 其他(停止)
 
 `class TestSpider(Spider, coroutine_num=1, max_depth=0):`
 
-`coroutine_num` 快速设置协程数量
+`coroutine_num` 快速设置协程数量（大于1生效，否则使用配置）
 
-`max_depth` 快速设置调用深度
+`max_depth` 快速设置调用深度（大于0生效，否则使用配置）
 
 `self.logger` logging 默认 `StreamHandler` 和 `NullHandler`
 
@@ -303,6 +305,8 @@ generator: 异步生成器
 
 `self.crawler.close()`
 
+主动结束程序
+
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Enter</kbd>
 
 ### 添加退出函数
@@ -310,6 +314,31 @@ generator: 异步生成器
 `self.crawler.register(func)`
 
 func 普通函数或异步函数(函数没有形参)
+
+程序结束前的回调函数
+
+<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Enter</kbd>
+
+### 流模式请求数据
+
+`Resquest`对象新增一个参数`stream_model`，表示以流模式请求数据，适用于请求图片，大文件的情况
+
+如果没有使用自定义`client`，`Response`读取完数据需要调用 `response.close_default_client()`，关闭默认的连接
+
+```python
+class StreamSpider(Spider, coroutine_num=3, max_depth=0):
+
+    async def __call__(self, *args, **kwargs):
+        yield Request(url='http://localhost', stream_model=True)
+
+    async def parse(self, response):
+        """
+        await response.aread()
+        """
+        async for i in response.aiter_raw(4096):
+            pass
+        await response.close_default_client()
+```
 
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Alt</kbd><kbd>F4</kbd>
 

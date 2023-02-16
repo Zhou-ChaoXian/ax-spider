@@ -21,8 +21,8 @@ class Request(httpx.Request):
                  files=None, cookies=None, stream=None, extensions=None, auth=None, verify=None, cert=None,
                  http1=True, http2=False, proxies=None, mounts=None, timeout=DEFAULT_TIMEOUT_CONFIG,
                  follow_redirects=True, limits=DEFAULT_LIMITS, max_redirects=DEFAULT_MAX_REDIRECTS,
-                 event_hooks=None, transport=None, trust_env=True, default_encoding='utf-8',
-                 client=None, filter_req=False, callback=None, meta=None, cb_kw=None):
+                 event_hooks=None, transport=None, trust_env=True, default_encoding='utf-8', stream_model=False,
+                 default_client=None, client=None, filter_req=False, callback=None, meta=None, cb_kw=None):
         super().__init__(method, url, params=params, headers=headers, cookies=cookies, content=content,
                          data=data, files=files, json=json, stream=stream, extensions=extensions)
         self.client_params = {
@@ -31,6 +31,8 @@ class Request(httpx.Request):
             'max_redirects': max_redirects, 'event_hooks': event_hooks, 'transport': transport,
             'trust_env': trust_env, 'default_encoding': default_encoding
         }
+        self.stream_model = stream_model
+        self.default_client: typing.Optional[Client] = default_client
         self.client: typing.Optional[Client] = client
         self.filter_req = filter_req
         self.callback = callback
@@ -44,11 +46,14 @@ class Request(httpx.Request):
         try:
             if self.client is None:
                 client = Client(**self.client_params)
-            return await client.send(self, auth=client.auth, follow_redirects=client.follow_redirects)
+                if self.stream_model:
+                    self.default_client = client
+            return await client.send(self, stream=self.stream_model, auth=client.auth,
+                                     follow_redirects=client.follow_redirects)
         except httpx.HTTPError as exc:
             self.exception = exc
         finally:
-            if self.client is None:
+            if not self.stream_model and self.client is None:
                 await client.aclose()
 
     def set_timeout(self, client):
@@ -90,6 +95,12 @@ class Response(httpx.Response):
 
     def re_first(self, regex, default=None, replace_entities=True):
         return next(iflatten(self.re(regex, replace_entities=replace_entities)), default)
+
+    async def close_default_client(self):
+        default_client = self.request.default_client
+        if default_client is not None:
+            await default_client.aclose()
+            self.request.default_client = None
 
 
 class HttpTransport(httpx.AsyncHTTPTransport):
@@ -158,6 +169,8 @@ class Client(httpx.AsyncClient):
             cookies=cookies,
             stream=stream,
             extensions=request.extensions,
+            stream_model=request.stream_model,
+            default_client=request.default_client,
             client=request.client,
             filter_req=request.filter_req,
             callback=request.callback,
