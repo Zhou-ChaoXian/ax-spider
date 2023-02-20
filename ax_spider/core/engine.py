@@ -83,7 +83,11 @@ class Engine(object):
         await self._process_extension(self.crawler.signals.request_received, request)
         for handler in self._handlers['process_request']:
             request = await handler(request)
-            if not isinstance(request, Request):
+            if isinstance(request, Request):
+                continue
+            elif isinstance(request, Response):
+                break
+            else:
                 return
         return request
 
@@ -106,7 +110,7 @@ class Engine(object):
             if isinstance(response, Response):
                 continue
             elif isinstance(response, Request):
-                return response
+                break
             else:
                 return
         return response
@@ -127,13 +131,15 @@ class Engine(object):
             return
         req = await self._process_request(request)
         if req is not None:
-            resp = await req.send()
-            if resp is None:
-                await self._handler_exception(req, depth)
-            else:
-                resp = await self._process_response(resp)
-                if resp is not None:
-                    await self._handler_response(resp, depth)
+            resp = req
+            if isinstance(req, Request):
+                resp = await req.send()
+                if resp is None:
+                    await self._handler_exception(req, depth)
+                    return
+            resp = await self._process_response(resp)
+            if resp is not None:
+                await self._handler_response(resp, depth)
 
     async def _handler_exception(self, request, depth):
         result = await self._process_exception(request, request.exception)

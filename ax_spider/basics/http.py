@@ -1,12 +1,13 @@
 # coding: utf-8
 
-import typing
 import httpx
+from typing import Optional, Any, AsyncIterable
 from parsel.selector import Selector
 from parsel.utils import iflatten, extract_regex
 from httpx._client import USE_CLIENT_DEFAULT, UseClientDefault
 from httpx._config import DEFAULT_TIMEOUT_CONFIG, DEFAULT_LIMITS, DEFAULT_MAX_REDIRECTS
 from httpx._transports.default import AsyncResponseStream, map_httpcore_exceptions, httpcore
+from httpx._types import HeaderTypes, ResponseContent, AsyncByteStream
 
 __all__ = [
     'Request',
@@ -22,7 +23,7 @@ class Request(httpx.Request):
                  http1=True, http2=False, proxies=None, mounts=None, timeout=DEFAULT_TIMEOUT_CONFIG,
                  follow_redirects=True, limits=DEFAULT_LIMITS, max_redirects=DEFAULT_MAX_REDIRECTS,
                  event_hooks=None, transport=None, trust_env=True, default_encoding='utf-8', stream_model=False,
-                 default_client=None, client=None, filter_req=False, callback=None, meta=None, cb_kw=None):
+                 client=None, filter_req=False, callback=None, meta=None, cb_kw=None):
         super().__init__(method, url, params=params, headers=headers, cookies=cookies, content=content,
                          data=data, files=files, json=json, stream=stream, extensions=extensions)
         self.client_params = {
@@ -32,29 +33,28 @@ class Request(httpx.Request):
             'trust_env': trust_env, 'default_encoding': default_encoding
         }
         self.stream_model = stream_model
-        self.default_client: typing.Optional[Client] = default_client
-        self.client: typing.Optional[Client] = client
+        self.default_client: Optional[Client] = None
+        self.client: Optional[Client] = client
         self.filter_req = filter_req
         self.callback = callback
-        self.meta: typing.Optional[dict] = meta or {}
-        self.cb_kw: typing.Optional[dict] = cb_kw or {}
+        self.meta: Optional[dict] = meta or {}
+        self.cb_kw: Optional[dict] = cb_kw or {}
         self.exception = None
 
     async def send(self):
-        client = self.client
-        self.set_timeout(client)
+        client_instance = self.client
+        if client_instance is None:
+            client_instance = self.default_client = Client(**self.client_params)
         try:
-            if self.client is None:
-                client = Client(**self.client_params)
-                if self.stream_model:
-                    self.default_client = client
-            return await client.send(self, stream=self.stream_model, auth=client.auth,
-                                     follow_redirects=client.follow_redirects)
+            response = await client_instance.send(self, stream=self.stream_model, auth=client_instance.auth,
+                                                  follow_redirects=client_instance.follow_redirects)
         except httpx.HTTPError as exc:
             self.exception = exc
-        finally:
-            if not self.stream_model and self.client is None:
-                await client.aclose()
+            await self.close_default_client()
+        else:
+            if not self.stream_model:
+                await self.close_default_client()
+            return response
 
     def set_timeout(self, client):
         if 'timeout' not in self.extensions:
@@ -63,11 +63,22 @@ class Request(httpx.Request):
                 timeout = httpx.Timeout(timeout)
             self.extensions['timeout'] = timeout.as_dict()
 
+    async def close_default_client(self):
+        df = self.default_client
+        if df is not None:
+            await df.aclose()
+            self.default_client = None
+
 
 class Response(httpx.Response):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, status_code: int = 200, *, request: Optional[Request] = None,
+                 headers: Optional[HeaderTypes] = None, content: Optional[ResponseContent] = None,
+                 text: Optional[str] = None, html: Optional[str] = None, json: Any = None,
+                 stream: Optional[AsyncByteStream] = None, meta: Optional[dict] = None, **kwargs):
+        super().__init__(status_code, headers=headers, content=content, text=text, html=html,
+                         json=json, stream=stream, request=request, **kwargs)
+        self.meta = meta or {}
         self._cached_selector = None
 
     @property
@@ -97,10 +108,13 @@ class Response(httpx.Response):
         return next(iflatten(self.re(regex, replace_entities=replace_entities)), default)
 
     async def close_default_client(self):
-        default_client = self.request.default_client
-        if default_client is not None:
-            await default_client.aclose()
-            self.request.default_client = None
+        await self.request.close_default_client()
+
+    async def __aenter__(self):
+        pass
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.request.close_default_client()
 
 
 class HttpTransport(httpx.AsyncHTTPTransport):
@@ -121,7 +135,7 @@ class HttpTransport(httpx.AsyncHTTPTransport):
         )
         with map_httpcore_exceptions():
             resp = await self._pool.handle_async_request(req)
-        assert isinstance(resp.stream, typing.AsyncIterable)
+        assert isinstance(resp.stream, AsyncIterable)
         return Response(
             status_code=resp.status,
             headers=resp.headers,
@@ -162,7 +176,7 @@ class Client(httpx.AsyncClient):
         headers = self._redirect_headers(request, url, method)
         stream = self._redirect_stream(request, method)
         cookies = httpx.Cookies(self.cookies)
-        return Request(
+        r = Request(
             url=url,
             method=method,
             headers=headers,
@@ -170,7 +184,6 @@ class Client(httpx.AsyncClient):
             stream=stream,
             extensions=request.extensions,
             stream_model=request.stream_model,
-            default_client=request.default_client,
             client=request.client,
             filter_req=request.filter_req,
             callback=request.callback,
@@ -178,6 +191,8 @@ class Client(httpx.AsyncClient):
             cb_kw=request.cb_kw,
             **request.client_params
         )
+        r.default_client = request.default_client
+        return r
 
     async def send(self, request, *, stream=False, auth=USE_CLIENT_DEFAULT,
                    follow_redirects=USE_CLIENT_DEFAULT) -> Response:

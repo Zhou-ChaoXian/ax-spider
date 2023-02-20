@@ -46,7 +46,7 @@ dist</font></font></b>目录下，里面有 <b><font size=5 color=green face="�
 
 ### 一起来实现一个简单的示例
 
-<b><font size=5 color=Tomato face="华文彩云">源码tests</font><b>目录下有一个更详细的示例
+<b><font size=5 color=Tomato face="华文彩云">源码tests</font></b>目录下有一个更详细的示例
 
 1. 找一个空闲的文件夹，使用IDE打开
 
@@ -205,15 +205,17 @@ class BaseItem(object):
 
 `process_request(self, request)`
 
-请求前处理，返回`request`(下一个) 其他(停止)
+发起请求前调用，返回值有三种类型 <b>[`Request`, `Response`, 其他]</b>
+
+request会调用下一个`process_request`，response会调用`process_response`，其他类型直接舍弃
 
 `process_exception(self, request, exception)`
 
-请求出错处理，返回`request`(重新请求) `exception`(下一个) 其他(停止)
+请求出错调用，返回`request`(重新请求) `exception`(下一个) 其他(停止)
 
 `process_response(self, response)`
 
-请求后处理，返回`request`(重新请求) `response`(下一个) 其他(停止)
+请求后调用，返回`request`(重新请求) `response`(下一个) 其他(停止)
 
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Enter</kbd>
 
@@ -323,7 +325,7 @@ func 普通函数或异步函数(函数没有形参)
 
 `Resquest`对象新增一个参数`stream_model`，表示以流模式请求数据，适用于请求图片，大文件的情况
 
-如果没有使用自定义`client`，`Response`读取完数据需要调用 `response.close_default_client()`，关闭默认的连接
+如果没有使用自定义`client`，`Response`读取完数据需要调用 `response.close_default_client()`，关闭默认的连接，推荐使用`with`语句关闭
 
 ```python
 class StreamSpider(Spider, coroutine_num=3, max_depth=0):
@@ -332,12 +334,10 @@ class StreamSpider(Spider, coroutine_num=3, max_depth=0):
         yield Request(url='http://localhost', stream_model=True)
 
     async def parse(self, response):
-        """
-        await response.aread()
-        """
-        async for i in response.aiter_raw(4096):
-            pass
-        await response.close_default_client()
+        if response.request.stream_model:
+            async with response:
+                async for i in response.aiter_raw():
+                    pass
 ```
 
 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Alt</kbd><kbd>F4</kbd>

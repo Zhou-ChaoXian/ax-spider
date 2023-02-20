@@ -22,15 +22,14 @@ class Transport(httpx.AsyncBaseTransport):
 class TestSpider(Spider, coroutine_num=3, max_depth=0):
 
     async def __call__(self, *args, **kwargs):
-        yield Request(url='http://localhost/', transport=Transport(), stream_model=True)
+        yield Request(url='http://www.localhost.com/', stream_model=True, transport=Transport())
 
     async def parse(self, response):
-        async for i in response.aiter_raw():
-            self.logger.info('%s %s', i, '---')
-        await response.close_default_client()
-
-        # yield Request(url='http://localhost/', transport=MockTransport(), callback=self.other_parse)
-        # yield Request(url='http://localhost/', timeout=Timeout(None, connect=1), callback=self.other_parse)
+        if response.request.stream_model:
+            async with response:
+                async for i in response.aiter_raw():
+                    self.logger.info('%s %s', i, '---')
+        yield Request(url='http://localhost/', transport=MockTransport(), callback=self.other_parse)
 
     async def other_parse(self, response):
         self.logger.info(f'other_parse {response.text}')
